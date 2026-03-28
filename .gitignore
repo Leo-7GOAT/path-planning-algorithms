@@ -1,4 +1,4 @@
-__pycache__/
+﻿__pycache__/
 *.pyc
 *.pyo
 *.pyd
@@ -8,8 +8,14 @@ venv/
 env/
 
 outputs/
+outputs_planning/animations/
+outputs_planning/overlays/
 
 .idea/
 .vscode/
 resume_project_summary.md
 .claude/
+
+# Local experiments not included in the public benchmark
+planners/APF.py
+planners/Frenet.py

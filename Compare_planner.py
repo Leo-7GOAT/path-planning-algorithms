@@ -3,20 +3,22 @@ Path Planner Comparison Benchmark
 
 Runs Dijkstra, A*, RRT, RRT*, and PRM across multiple obstacle scenarios,
 collects metrics (path length, planning time, explored nodes), and produces
-comparison visualizations.
+comparison visualizations and animations.
 
 Usage:
-    python Compare_planner.py                    # save figures only
-    python Compare_planner.py --show             # display figures interactively
-    python Compare_planner.py --animate          # save GIF animations
-    python Compare_planner.py --show-animation   # display animations live
+    python Compare_planner.py
+    python Compare_planner.py --show
+    python Compare_planner.py --animate
+    python Compare_planner.py --show-animation
 """
 
 import argparse
 import csv
 import os
 import shutil
+from contextlib import contextmanager, nullcontext
 
+from matplotlib.animation import FuncAnimation, PillowWriter
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -27,12 +29,7 @@ from planners import (
     RRTPlanner,
     RRTStarPlanner,
 )
-from planners.common import (
-    PlannerConfig,
-    PlanningResult,
-    build_scenario_obstacles,
-    format_table,
-)
+from planners.common import PlannerConfig, build_scenario_obstacles, format_table
 
 COLORS = {
     "Dijkstra": "tab:red",
@@ -61,41 +58,151 @@ def _prepare_output_dir(output_dir):
     os.makedirs(output_dir, exist_ok=True)
 
 
-def plot_scenario_result(ax, scenario_name, scenario_data, planner_name, result):
-    """Plot a single planner result on the given axes."""
+@contextmanager
+def _suppress_interactive_windows():
+    was_interactive = plt.isinteractive()
+    plt.ioff()
+    try:
+        yield
+    finally:
+        if was_interactive:
+            plt.ion()
+
+
+def _scenario_label(scenario_name):
+    labels = {
+        "corridor": "Corridor",
+        "scattered": "Scattered",
+        "narrow_passage": "Narrow Passage",
+    }
+    return labels.get(scenario_name, scenario_name)
+
+
+def _draw_scene(axis, scenario_data):
     ox = scenario_data["ox"]
     oy = scenario_data["oy"]
     sx, sy = scenario_data["sx"], scenario_data["sy"]
     gx, gy = scenario_data["gx"], scenario_data["gy"]
 
-    ax.plot(ox, oy, ".k", markersize=1, label="Obstacles")
-    ax.plot(sx, sy, "og", markersize=10, label="Start")
-    ax.plot(gx, gy, "sr", markersize=10, label="Goal")
-
-    if result.success:
-        color = COLORS.get(planner_name, "tab:blue")
-        ax.plot(result.path_x, result.path_y, "-", color=color, linewidth=2, label="Path")
-
-    ax.set_title(f"{planner_name} — {scenario_name}\n"
-                 f"Length: {result.path_length:.1f}m | "
-                 f"Time: {result.planning_time * 1000:.1f}ms | "
-                 f"Nodes: {result.explored_nodes}")
-    ax.set_xlabel("X [m]")
-    ax.set_ylabel("Y [m]")
-    ax.set_aspect("equal")
-    ax.grid(True, alpha=0.3)
+    axis.plot(ox, oy, ".k", markersize=1.5, label="Obstacles")
+    axis.plot(sx, sy, "og", markersize=8, label="Start")
+    axis.plot(gx, gy, "sr", markersize=8, label="Goal")
+    axis.set_xlabel("X [m]")
+    axis.set_ylabel("Y [m]")
+    axis.set_aspect("equal")
+    axis.grid(True, alpha=0.3)
 
 
-def run_benchmark(output_dir="outputs_planning", show=False):
+def plot_overlay_comparison(scenario_name, scenario_data, scenario_results, output_path, show=False):
+    context = nullcontext() if show else _suppress_interactive_windows()
+    with context:
+        figure, axis = plt.subplots(figsize=(8.2, 6.6))
+        _draw_scene(axis, scenario_data)
+
+        for planner_name, result in scenario_results:
+            color = COLORS.get(planner_name, "tab:gray")
+            if result.success:
+                axis.plot(result.path_x, result.path_y, color=color, linewidth=2.2, label=planner_name)
+            else:
+                axis.plot([], [], color=color, linewidth=2.2, label=f"{planner_name} (fail)")
+
+        axis.set_title(f"{_scenario_label(scenario_name)} - All Planners")
+        axis.legend(frameon=False, ncol=3, loc="best")
+        figure.tight_layout()
+        figure.savefig(output_path, dpi=180, bbox_inches="tight")
+
+        if show:
+            return figure
+
+        plt.close(figure)
+        return None
+
+
+def animate_overlay_comparison(
+    scenario_name,
+    scenario_data,
+    scenario_results,
+    output_path=None,
+    show=False,
+    fps=15,
+):
+    context = nullcontext() if show else _suppress_interactive_windows()
+    with context:
+        figure, axis = plt.subplots(figsize=(8.2, 6.6))
+        max_points = max((len(result.path_x) for _, result in scenario_results if result.success), default=1)
+        frame_count = max(45, max_points * 2)
+        progress = np.linspace(0.0, 1.0, frame_count)
+
+        def _draw_frame(frame_no):
+            axis.clear()
+            _draw_scene(axis, scenario_data)
+            frac = float(progress[frame_no])
+
+            for planner_name, result in scenario_results:
+                color = COLORS.get(planner_name, "tab:gray")
+                if not result.success or not result.path_x:
+                    axis.plot([], [], color=color, linewidth=2.0, label=f"{planner_name} (fail)")
+                    continue
+
+                point_count = max(1, int(np.ceil(frac * len(result.path_x))))
+                point_count = min(point_count, len(result.path_x))
+                axis.plot(
+                    result.path_x[:point_count],
+                    result.path_y[:point_count],
+                    color=color,
+                    linewidth=2.2,
+                    label=planner_name,
+                )
+                axis.scatter(
+                    [result.path_x[point_count - 1]],
+                    [result.path_y[point_count - 1]],
+                    color=color,
+                    s=22,
+                )
+
+            axis.set_title(
+                f"{_scenario_label(scenario_name)} - All Planners Live ({int(frac * 100):d}%)"
+            )
+            axis.legend(frameon=False, ncol=3, loc="best")
+
+        animation = FuncAnimation(
+            figure,
+            _draw_frame,
+            frames=frame_count,
+            interval=max(40, int(1000 / fps)),
+            repeat=False,
+        )
+
+        if output_path:
+            animation.save(output_path, writer=PillowWriter(fps=fps))
+
+        if show:
+            return figure, animation
+
+        plt.close(figure)
+        return None, None
+
+
+def run_benchmark(output_dir="outputs_planning", show=False, make_animation=False, show_animation=False):
     _prepare_output_dir(output_dir)
     scenarios = build_scenario_obstacles()
     config = PlannerConfig(resolution=1.0, robot_radius=2.0)
 
     all_results = []
+    scenario_result_map = {}
+
+    overlay_dir = os.path.join(output_dir, "overlays")
+    animation_dir = os.path.join(output_dir, "animations")
+    os.makedirs(overlay_dir, exist_ok=True)
+    if make_animation:
+        os.makedirs(animation_dir, exist_ok=True)
+
+    figures = []
+    animation_figures = []
 
     for scenario_name, scenario_data in scenarios.items():
         print(f"\n{'=' * 60}")
-        print(f"Scenario: {scenario_name}")
+        print(f"Scenario: {_scenario_label(scenario_name)}")
         print(f"{'=' * 60}")
 
         ox = scenario_data["ox"]
@@ -103,123 +210,168 @@ def run_benchmark(output_dir="outputs_planning", show=False):
         sx, sy = scenario_data["sx"], scenario_data["sy"]
         gx, gy = scenario_data["gx"], scenario_data["gy"]
 
-        n_planners = len(PLANNERS)
-        fig, axes = plt.subplots(1, n_planners, figsize=(6 * n_planners, 6))
-        if n_planners == 1:
-            axes = [axes]
-
-        for idx, (planner_name, planner_cls) in enumerate(PLANNERS):
+        scenario_results = []
+        for planner_name, planner_cls in PLANNERS:
             print(f"  Running {planner_name}...", end=" ", flush=True)
             planner = planner_cls(config=config)
             result = planner.plan(sx, sy, gx, gy, ox, oy)
             all_results.append((scenario_name, result))
+            scenario_results.append((planner_name, result))
 
             status = "OK" if result.success else "FAIL"
-            print(f"{status} | "
-                  f"Length={result.path_length:.1f}m | "
-                  f"Time={result.planning_time * 1000:.1f}ms | "
-                  f"Nodes={result.explored_nodes}")
+            print(
+                f"{status} | Length={result.path_length:.1f}m | "
+                f"Time={result.planning_time * 1000:.1f}ms | Nodes={result.explored_nodes}"
+            )
 
-            plot_scenario_result(axes[idx], scenario_name, scenario_data, planner_name, result)
-
-        fig.suptitle(f"Planner Comparison — {scenario_name}", fontsize=16, y=1.02)
-        fig.tight_layout()
-        fig.savefig(
-            os.path.join(output_dir, f"{_slugify(scenario_name)}_comparison.png"),
-            dpi=150, bbox_inches="tight",
+        scenario_result_map[scenario_name] = scenario_results
+        overlay_path = os.path.join(output_dir, f"{_slugify(scenario_name)}_comparison.png")
+        overlay_figure = plot_overlay_comparison(
+            scenario_name,
+            scenario_data,
+            scenario_results,
+            overlay_path,
+            show=show,
         )
-        if show:
-            plt.show()
-        plt.close(fig)
+        if overlay_figure is not None:
+            figures.append(overlay_figure)
 
-    # Summary bar charts
+        overlay_copy_path = os.path.join(overlay_dir, f"{_slugify(scenario_name)}_all_planners.png")
+        plot_overlay_comparison(
+            scenario_name,
+            scenario_data,
+            scenario_results,
+            overlay_copy_path,
+            show=False,
+        )
+
+        if make_animation or show_animation:
+            animation_path = None
+            if make_animation:
+                animation_path = os.path.join(animation_dir, f"{_slugify(scenario_name)}_all_planners.gif")
+            animation_figure, _ = animate_overlay_comparison(
+                scenario_name,
+                scenario_data,
+                scenario_results,
+                output_path=animation_path,
+                show=show_animation,
+            )
+            if animation_figure is not None:
+                animation_figures.append(animation_figure)
+
     _plot_summary(all_results, scenarios, output_dir, show)
 
-    # Print results table
     print(f"\n{'=' * 60}")
     print("Summary")
     print(f"{'=' * 60}")
-    planning_results = [r for _, r in all_results]
+    planning_results = [result for _, result in all_results]
     print(format_table(planning_results))
 
-    # Save CSV
     _save_csv(all_results, output_dir)
 
+    if show and figures:
+        plt.show()
+        for figure in figures:
+            plt.close(figure)
+
+    if show_animation and animation_figures:
+        plt.show()
+        for figure in animation_figures:
+            plt.close(figure)
+
     print(f"\nResults saved to {output_dir}/")
+    print(f"  - Static comparisons: {len(scenarios)}")
+    print(f"  - Overlay snapshots: {overlay_dir}")
+    if make_animation:
+        print(f"  - Scenario GIFs: {animation_dir}")
 
 
 def _plot_summary(all_results, scenarios, output_dir, show):
-    """Create bar chart comparisons across all scenarios."""
     scenario_names = list(scenarios.keys())
     planner_names = [name for name, _ in PLANNERS]
     metrics = {
-        "Path Length (m)": lambda r: r.path_length if r.success else 0,
-        "Planning Time (ms)": lambda r: r.planning_time * 1000,
-        "Explored Nodes": lambda r: r.explored_nodes,
+        "Path Length (m)": lambda result: result.path_length if result.success else 0.0,
+        "Planning Time (ms)": lambda result: result.planning_time * 1000.0,
+        "Explored Nodes": lambda result: result.explored_nodes,
     }
 
     for metric_name, metric_fn in metrics.items():
-        fig, ax = plt.subplots(figsize=(10, 6))
-        x = np.arange(len(scenario_names))
-        width = 0.15
-        offsets = np.linspace(
-            -width * (len(planner_names) - 1) / 2,
-            width * (len(planner_names) - 1) / 2,
-            len(planner_names),
-        )
+        context = nullcontext() if show else _suppress_interactive_windows()
+        with context:
+            figure, axis = plt.subplots(figsize=(10, 6))
+            x_axis = np.arange(len(scenario_names))
+            width = 0.15
+            offsets = np.linspace(
+                -width * (len(planner_names) - 1) / 2.0,
+                width * (len(planner_names) - 1) / 2.0,
+                len(planner_names),
+            )
 
-        for i, pname in enumerate(planner_names):
-            values = []
-            for sname in scenario_names:
-                for s, r in all_results:
-                    if s == sname and r.planner == pname:
-                        values.append(metric_fn(r))
-                        break
-            ax.bar(x + offsets[i], values, width, label=pname,
-                   color=COLORS.get(pname, "tab:gray"))
+            for i, planner_name in enumerate(planner_names):
+                values = []
+                for scenario_name in scenario_names:
+                    for stored_scenario, result in all_results:
+                        if stored_scenario == scenario_name and result.planner == planner_name:
+                            values.append(metric_fn(result))
+                            break
+                axis.bar(
+                    x_axis + offsets[i],
+                    values,
+                    width,
+                    label=planner_name,
+                    color=COLORS.get(planner_name, "tab:gray"),
+                )
 
-        ax.set_xlabel("Scenario")
-        ax.set_ylabel(metric_name)
-        ax.set_title(f"Planner Comparison — {metric_name}")
-        ax.set_xticks(x)
-        ax.set_xticklabels(scenario_names)
-        ax.legend()
-        ax.grid(True, axis="y", alpha=0.3)
-        fig.tight_layout()
+            axis.set_xlabel("Scenario")
+            axis.set_ylabel(metric_name)
+            axis.set_title(f"Planner Comparison - {metric_name}")
+            axis.set_xticks(x_axis)
+            axis.set_xticklabels([_scenario_label(name) for name in scenario_names])
+            axis.legend(frameon=False)
+            axis.grid(True, axis="y", alpha=0.3)
+            figure.tight_layout()
 
-        slug = metric_name.lower().replace(" ", "_").replace("(", "").replace(")", "")
-        fig.savefig(os.path.join(output_dir, f"summary_{slug}.png"), dpi=150, bbox_inches="tight")
-        if show:
-            plt.show()
-        plt.close(fig)
+            slug = metric_name.lower().replace(" ", "_").replace("(", "").replace(")", "")
+            figure.savefig(os.path.join(output_dir, f"summary_{slug}.png"), dpi=150, bbox_inches="tight")
+            if show:
+                plt.show()
+            plt.close(figure)
 
 
 def _save_csv(all_results, output_dir):
     path = os.path.join(output_dir, "results.csv")
     fieldnames = [
-        "Scenario", "Planner", "Success", "Path Length (m)",
-        "Planning Time (ms)", "Explored Nodes",
+        "Scenario",
+        "Planner",
+        "Success",
+        "Path Length (m)",
+        "Planning Time (ms)",
+        "Explored Nodes",
     ]
-    with open(path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+    with open(path, "w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
-        for scenario_name, r in all_results:
-            writer.writerow({
-                "Scenario": scenario_name,
-                **r.to_dict(),
-            })
+        for scenario_name, result in all_results:
+            writer.writerow({"Scenario": _scenario_label(scenario_name), **result.to_dict()})
 
 
 def build_arg_parser():
     parser = argparse.ArgumentParser(description="Path Planner Comparison Benchmark")
     parser.add_argument("--output-dir", default="outputs_planning", help="Output directory")
     parser.add_argument("--show", action="store_true", help="Display figures interactively")
+    parser.add_argument("--animate", action="store_true", help="Save GIF animations")
+    parser.add_argument("--show-animation", action="store_true", help="Display animations interactively")
     return parser
 
 
 def main():
     args = build_arg_parser().parse_args()
-    run_benchmark(output_dir=args.output_dir, show=args.show)
+    run_benchmark(
+        output_dir=args.output_dir,
+        show=args.show,
+        make_animation=args.animate,
+        show_animation=args.show_animation,
+    )
 
 
 if __name__ == "__main__":

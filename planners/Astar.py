@@ -53,10 +53,14 @@ class AStarPlanner:
         came_from = {start: None}
         # priority queue: (f_score, node)
         open_set = [(self._heuristic(start, goal), start)]
+        closed_set = set()
         explored = 0
 
         while open_set:
             _, current = heapq.heappop(open_set)
+
+            if current in closed_set:
+                continue
 
             if current == goal:
                 path_x, path_y = [], []
@@ -77,6 +81,7 @@ class AStarPlanner:
                 return result
 
             g_current = cost_so_far[current]
+            closed_set.add(current)
             explored += 1
 
             for dx, dy, move_cost in MOTIONS:
