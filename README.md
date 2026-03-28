@@ -216,11 +216,3 @@ python Compare_planner.py --show-animation
 | `planners/DWA.py` | 动态窗口局部规划 |
 | `assets/readme/` | README 展示图片与 GIF |
 | `outputs_planning/` | benchmark 运行输出目录 |
-
-## Resume-oriented Summary
-
-> 搭建了一个覆盖搜索、采样、曲线、运动学/栅格、势场和局部规划六大类方法的路径规划 benchmark 项目，统一实现并评测 Dijkstra、A*、Hybrid A*、RRT、RRT*、PRM、Bezier、B-Spline、Dubins、Reeds-Shepp、Frenet、Lattice、APF、DWA 共 14 种方法，在走廊、散布障碍物和窄通道 3 个场景中对路径长度、平滑性、规划时间和搜索规模进行量化对比，并支持多算法同图可视化与 GIF 动态展示。
-
-## License
-
-This project is released under the MIT License. See `LICENSE` for details.
