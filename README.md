@@ -2,7 +2,7 @@
 
 Comparative benchmark and visualization project for representative path-planning methods in Python.
 
-这是一个面向自动驾驶规划岗位展示的路径规划 benchmark 项目。项目把搜索、采样、曲线、运动学/栅格、势场、局部规划几大类方法统一到同一套二维障碍地图评测框架里，支持：
+这是一个面向自动驾驶规划展示的路径规划 benchmark 项目。项目把搜索、采样、曲线、运动学/栅格、势场、局部规划几大类方法统一到同一套二维障碍地图评测框架里，支持：
 
 - 多算法同图静态对比
 - 每个场景的联跑 GIF 动图
@@ -218,11 +218,3 @@ python Compare_planner.py --show-animation
 | `DWA.py` | 动态窗口局部规划 |
 | `assets/readme/` | README 展示图片与 GIF |
 | `outputs_planning/` | benchmark 本地运行输出目录，默认不纳入 GitHub 展示结构 |
-
-## Resume-oriented Summary
-
-> 搭建了一个覆盖搜索、采样、曲线、运动学/栅格、势场和局部规划六大类方法的路径规划 benchmark 项目，统一实现并评测 Dijkstra、A*、Hybrid A*、RRT、RRT*、PRM、Bezier、B-Spline、Dubins、Reeds-Shepp、Frenet、Lattice、APF、DWA 共 14 种方法，在走廊、散布障碍物和窄通道 3 个场景中对路径长度、平滑性、规划时间和搜索规模进行量化对比，并支持多算法同图可视化与 GIF 动态展示。
-
-## License
-
-This project is released under the MIT License. See `LICENSE` for details.
