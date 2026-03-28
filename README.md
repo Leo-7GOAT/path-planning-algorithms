@@ -1,98 +1,76 @@
-# Path Planning & Tracking Controllers Benchmark
+# Path Planning Algorithms Benchmark
 
-Comparative benchmark and visualization project for classical vehicle path-planning algorithms and path-tracking controllers in Python.
+Comparative benchmark and visualization for classical path-planning algorithms in Python.
 
-这是一个面向自动驾驶规控/控制算法岗位展示的路径规划 + 轨迹跟踪 benchmark 项目。当前版本已经整理为可独立运行、可复现实验结果、可实时演示的工程化版本。
+这是一个面向自动驾驶规划算法岗位展示的路径规划 benchmark 项目。统一实现并对比 5 种经典规划算法，在 3 个不同障碍物场景上进行量化评测，支持一键出图出表。
 
 ## At a Glance
 
 - `5` 类规划器：`Dijkstra / A* / RRT / RRT* / PRM`
-- `5` 类控制器：`Stanley / Pure Pursuit / PID / LQR / MPC-style`
-- `3` 类规划任务：`Corridor / Scattered / Narrow Passage`
-- `3` 类跟踪任务：`Straight / Curved / CircleLoop`
-- 支持实时弹窗、多车同图演示、量化评测、自动出图出表
-- 适合作为自动驾驶规划/控制/规控岗位的项目展示与面试讲解材料
+- `3` 类测试场景：`Corridor / Scattered / Narrow Passage`
+- 统一栅格地图、统一障碍物碰撞检测、统一评测指标
+- 自动生成对比图表和 CSV 结果
+- 依赖简洁，仅需 `numpy + matplotlib`
+- 适合作为自动驾驶规划岗位的项目展示与面试讲解材料
 
-统一实现并对比的方法如下：
-
-**路径规划（Planning）：**
-- `Dijkstra`：经典最短路径搜索算法
-- `A*`：带启发式函数的搜索算法，效率优于 Dijkstra
-- `RRT`：快速探索随机树，适用于高维空间
-- `RRT*`：RRT 的渐近最优版本，路径质量更优
-- `PRM`：概率路线图，适用于多次查询场景
-
-**轨迹跟踪（Tracking）：**
-- `Stanley`
-- `Pure Pursuit`
-- `PID`
-- `LQR`
-- `MPC-style`
-
-项目使用统一的运动学自行车模型、统一的仿真时钟、统一的终点判定和统一的评测指标，对不同控制器在多种轨迹任务上的跟踪精度、完成时间和控制平滑性进行量化对比。路径规划模块使用统一的栅格地图和障碍物场景，对不同规划器在路径长度、规划时间和探索节点数上进行量化对比。
-
-## Highlights
-
-- 统一 benchmark 框架：同一套车辆模型、终点逻辑和指标统计，便于公平对比。
-- 支持 5 种规划器：`Dijkstra / A* / RRT / RRT* / PRM`。
-- 支持 5 种控制器：`Stanley / Pure Pursuit / PID / LQR / MPC-style`。
-- 支持 3 类规划场景：`Corridor / Scattered / Narrow Passage`。
-- 支持 3 类跟踪任务：`Straight`、高曲率 `Curved`、整圈闭环 `CircleLoop`。
-- 综合脚本默认实时弹窗演示，并让多辆车在同一张图里一起跑。
-- 支持每个控制器独立脚本运行，也支持综合 benchmark 一键出图出表。
-- 每次运行自动覆盖旧结果，避免历史输出干扰当前展示。
-- 依赖简洁，仅需 `numpy + matplotlib`。
+---
 
 ## Visualization
 
-### Live Multi-controller Demo
+### Scenario Comparison
 
-![Curved multi-controller live demo](assets/readme/curved_all_controllers.gif)
+**Corridor — 迷宫式走廊**
 
-### Multi-controller Curved Demo
+![Corridor comparison](assets/readme/corridor_comparison.png)
 
-![Curved multi-controller snapshot](assets/readme/curved_all_controllers.png)
+**Scattered — 随机散布障碍物**
 
-### Trajectory Overview
+![Scattered comparison](assets/readme/scattered_comparison.png)
 
-![Trajectory overview](assets/readme/trajectory_overview.png)
+**Narrow Passage — 窄通道**
+
+![Narrow Passage comparison](assets/readme/narrow_passage_comparison.png)
 
 ### Metric Dashboard
 
-![Metric dashboard](assets/readme/metric_dashboard.png)
+**Path Length**
 
-## Controllers
+![Path length comparison](assets/readme/summary_path_length_m.png)
 
-- `Stanley`：基于航向误差和横向误差的几何跟踪方法。
-- `Pure Pursuit`：基于前视点的经典几何路径跟踪方法。
-- `PID`：使用速度 PID 和横向误差 PID 的基线方法。
-- `LQR`：基于线性二次型调节器的状态反馈控制方法。
-- `MPC-style`：有限时域预测控制风格的控制器，用于兼顾精度与平滑性。
+**Planning Time**
 
-## Scenarios
+![Planning time comparison](assets/readme/summary_planning_time_ms.png)
 
-- `Straight`：直线路径，主要验证基础速度控制与稳态跟踪能力。
-- `Curved`：高曲率、多转折连续曲线，主要验证横向误差抑制与控制稳定性。
-- `CircleLoop`：完整一圈闭环任务，主要验证持续曲率场景下的鲁棒性与路径保持能力。
+**Explored Nodes**
+
+![Explored nodes comparison](assets/readme/summary_explored_nodes.png)
+
+---
 
 ## Planners
 
-- `Dijkstra`：经典图搜索算法，均匀扩展搜索，保证最短路径。
-- `A*`：在 Dijkstra 基础上加入启发式函数 h(n)，大幅减少搜索节点数。
-- `RRT`：基于随机采样的路径规划，不依赖栅格离散化，概率完备。
-- `RRT*`：RRT 的渐近最优扩展，通过 choose-parent 和 rewire 步骤逐步优化路径。
-- `PRM`：概率路线图方法，先采样构图后查询，适合多次规划的场景。
+| Planner | Category | Description |
+| --- | --- | --- |
+| **Dijkstra** | Search-based | 经典图搜索算法，均匀扩展搜索，保证最短路径。时间复杂度 O(V log V + E)。 |
+| **A*** | Search-based | 在 Dijkstra 基础上加入启发式函数 h(n)（欧几里得距离），大幅减少搜索节点数，保证最优路径。 |
+| **RRT** | Sampling-based | 快速探索随机树，通过随机采样增量构建搜索树，不依赖栅格离散化，概率完备。 |
+| **RRT*** | Sampling-based | RRT 的渐近最优扩展，通过 choose-parent 和 rewire 两个关键步骤逐步优化路径质量。 |
+| **PRM** | Sampling-based | 概率路线图方法，分为 learning（采样建图）和 query（Dijkstra 查询）两阶段，适合多次规划。 |
 
-## Planning Scenarios
+## Scenarios
 
-- `Corridor`：迷宫式走廊，测试规划器在狭长空间中的搜索能力。
-- `Scattered`：随机散布障碍物，测试规划器在复杂环境中的避障能力。
-- `Narrow Passage`：窄通道场景，测试规划器发现狭窄可通行区域的能力。
+| Scenario | Description |
+| --- | --- |
+| **Corridor** | 迷宫式走廊，含两道内墙，测试规划器在狭长空间中的搜索与绕行能力。 |
+| **Scattered** | 随机散布圆形障碍物，测试规划器在复杂环境中的避障与路径优化能力。 |
+| **Narrow Passage** | 中央仅有一个窄通道，测试规划器发现狭窄可通行区域的能力。 |
 
-## Planning Benchmark Snapshot
+---
+
+## Benchmark Results
 
 | Scenario | Planner | Path Length (m) | Planning Time (ms) | Explored Nodes |
-| --- | --- | --- | --- | --- |
+| --- | --- | ---: | ---: | ---: |
 | Corridor | Dijkstra | 120.71 | 160 | 2627 |
 | Corridor | A* | 120.71 | 164 | 3050 |
 | Corridor | RRT | 168.45 | 157 | 258 |
@@ -109,6 +87,32 @@ Comparative benchmark and visualization project for classical vehicle path-plann
 | Narrow Passage | RRT* | 40.08 | 507 | 1334 |
 | Narrow Passage | PRM | 42.37 | 197 | 602 |
 
+---
+
+## Experiment Analysis
+
+### Overall
+
+- 5 种规划器在 3 个场景上全部成功找到路径，验证了统一 benchmark 框架和碰撞检测的正确性。
+- `Narrow Passage` 场景能明显区分不同方法的搜索效率：A* 仅探索 40 个节点即找到最优路径，效率优势突出。
+- `Corridor` 场景路径较长且包含绕行，对采样类方法（RRT/RRT*/PRM）的路径质量是较好的考验。
+
+### By Planner
+
+- **Dijkstra**：在所有场景上都能找到最短路径（与 A* 一致），但探索节点数最多，效率最低。适合作为最优性 baseline。
+- **A***：路径质量与 Dijkstra 相同，但在 Narrow Passage 场景中仅探索 40 个节点（Dijkstra 需 1191 个），启发式函数的加速效果非常显著。
+- **RRT**：规划速度快、探索节点少，但路径质量最差（Corridor 场景路径比最优长约 40%），路径呈锯齿状，适合快速可行解场景。
+- **RRT***：路径质量最优（Corridor 和 Scattered 场景均取得最短路径），但规划时间最长，体现了"质量换时间"的特性。
+- **PRM**：路径质量介于 RRT 和 A* 之间，规划时间适中，采样数固定（600），适合需要多次查询的场景。
+
+### By Scenario
+
+- **Corridor**：RRT* 找到最短路径（115.83m），优于 Dijkstra/A* 的 120.71m，说明在连续空间中不受栅格离散化限制的优势。
+- **Scattered**：同样 RRT* 最优（75.49m），A* 和 Dijkstra 因栅格化而路径稍长（80.08m）。
+- **Narrow Passage**：A* 效率最高（40 节点，62ms），RRT 仅需 33 节点但路径质量较差（48.05m vs 40.00m）。
+
+---
+
 ## Quick Start
 
 ### 1. Install
@@ -117,166 +121,48 @@ Comparative benchmark and visualization project for classical vehicle path-plann
 pip install -r requirements.txt
 ```
 
-### 2. Run the planner benchmark
+### 2. Run the benchmark
 
 ```bash
-python Compare_planner.py
-python Compare_planner.py --show    # 弹窗显示结果
+python Compare_planner.py                # 静默运行，保存结果到 outputs_planning/
+python Compare_planner.py --show         # 弹窗显示结果图表
 ```
 
-### 3. Run the controller benchmark
-
-```bash
-python Compare_controller.py
-```
-
-默认行为：
-
-- 实时弹出综合演示窗口
-- 同一张图里显示多个控制器一起跑
-- 覆盖旧结果并重新生成图表
-
-如果你只想静默生成结果，不弹窗：
-
-```bash
-python Compare_controller.py --no-live
-```
-
-如果你还想导出 GIF：
-
-```bash
-python Compare_controller.py --animate
-```
-
-## Run Individual Controllers
-
-每个控制器都可以独立运行：
-
-```bash
-python Stanley.py
-python PurePursuit.py
-python PID.py
-python LQR.py
-python MPC.py
-```
-
-如果只生成结果，不弹实时窗口：
-
-```bash
-python Stanley.py --no-live
-python PurePursuit.py --no-live
-python PID.py --no-live
-python LQR.py --no-live
-python MPC.py --no-live
-```
-
-## Current Benchmark Snapshot
-
-当前本地基准结果如下：
-
-| Scenario | Controller | Success | Avg Lat Err (m) | Max Lat Err (m) | RMSE (m) | Completion Time (s) | Mean \|Speed Err\| (m/s) | Mean \|Steer\| (rad) | Mean \|Steer Rate\| (rad/s) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Straight | Stanley | Yes | 0.000 | 0.000 | 0.000 | 12.70 | 0.985 | 0.000 | 0.000 |
-| Straight | PurePursuit | Yes | 0.000 | 0.000 | 0.000 | 12.60 | 0.981 | 0.000 | 0.000 |
-| Straight | PID | Yes | 0.178 | 0.649 | 0.280 | 12.70 | 0.987 | 0.257 | 5.155 |
-| Straight | LQR | Yes | 0.000 | 0.000 | 0.000 | 12.60 | 0.985 | 0.000 | 0.000 |
-| Straight | MPC | Yes | 0.000 | 0.000 | 0.000 | 12.60 | 0.985 | 0.000 | 0.000 |
-| Curved | Stanley | Yes | 0.221 | 2.771 | 0.547 | 25.00 | 0.491 | 0.137 | 0.175 |
-| Curved | PurePursuit | Yes | 0.282 | 3.881 | 0.776 | 25.60 | 0.471 | 0.136 | 0.169 |
-| Curved | PID | Yes | 0.407 | 3.562 | 0.726 | 25.30 | 0.484 | 0.479 | 8.149 |
-| Curved | LQR | Yes | 0.346 | 4.113 | 0.824 | 25.80 | 0.467 | 0.431 | 7.329 |
-| Curved | MPC | Yes | 0.260 | 3.886 | 0.765 | 25.60 | 0.470 | 0.137 | 0.616 |
-| CircleLoop | Stanley | Yes | 0.118 | 0.148 | 0.121 | 23.00 | 0.269 | 0.161 | 0.214 |
-| CircleLoop | PurePursuit | Yes | 0.039 | 0.080 | 0.042 | 23.20 | 0.267 | 0.149 | 0.081 |
-| CircleLoop | PID | Yes | 0.055 | 0.227 | 0.069 | 23.10 | 0.270 | 0.463 | 8.693 |
-| CircleLoop | LQR | Yes | 0.045 | 0.081 | 0.048 | 23.10 | 0.271 | 0.296 | 5.286 |
-| CircleLoop | MPC | Yes | 0.047 | 0.066 | 0.049 | 23.10 | 0.270 | 0.148 | 1.474 |
-
-## Experiment Analysis
-
-### Overall
-
-- 5 种控制器在 3 个任务上都能成功完成跟踪，说明当前统一 benchmark 框架和终点减速逻辑已经稳定可用。
-- `Straight` 任务区分度较低，更适合作为基础正确性验证。
-- `Curved` 是当前最有挑战性的场景，能明显拉开不同方法在精度、控制平滑性和鲁棒性上的差异。
-- `CircleLoop` 反映了持续曲率场景下的闭环稳定能力，对前视型和预测型方法更有区分意义。
-
-### By Scenario
-
-- `Straight`：`Stanley / Pure Pursuit / LQR / MPC` 基本实现零误差跟踪，说明基础模型、路径索引和控制接口工作正常；`PID` 可以完成任务，但横向控制仍存在一定抖动。
-- `Curved`：`Stanley` 在当前参数下 RMSE 最低，说明其在高曲率几何路径跟踪上的表现较强；`MPC-style` 的平均转向变化率明显更低，说明它在复杂场景下更容易兼顾精度和控制平滑性。
-- `CircleLoop`：`Pure Pursuit` 的 RMSE 最低，说明前视策略在闭环连续曲率任务里非常有效；`MPC-style` 和 `LQR` 也保持了较低误差，表现稳定。
-
-### By Controller
-
-- `Stanley`：在几何路径跟踪任务中整体表现稳定，尤其适合曲率变化明显的路径。
-- `Pure Pursuit`：实现简单、效果直观，在闭环和连续曲率任务里很有代表性。
-- `PID`：适合作为 baseline，但在复杂场景下更容易出现较大的转向振荡。
-- `LQR`：具备较强的经典控制解释性，适合做状态反馈方法对照。
-- `MPC-style`：虽然 RMSE 不一定始终最低，但通常能在精度和控制平滑性之间取得较好平衡。
-
-### Engineering Notes
-
-- 当前终点减速逻辑使用统一速度收敛和柔性制动策略，避免了早期版本中“接近终点时速度来回震荡”的问题。
-- 综合脚本与单控制器脚本都支持覆盖旧结果重新生成，便于反复调参和稳定展示。
+---
 
 ## File Guide
 
 | File | Purpose |
 | --- | --- |
 | `Compare_planner.py` | 规划器综合 benchmark 入口，统一调度所有规划器并输出总结果。 |
-| `planners/` | 路径规划器实现目录，包含 Dijkstra、A*、RRT、RRT*、PRM。 |
-| `planners/common.py` | 规划器公共模块：栅格地图、障碍物场景、评测指标。 |
-| `Compare_controller.py` | 综合 benchmark 入口，统一调度所有控制器并输出总结果。 |
-| `benchmark_runner.py` | 仿真主流程、场景构造、评测逻辑、作图与动画导出核心模块。 |
-| `Stanley.py` | `Stanley` 控制器实现与独立运行入口。 |
-| `PurePursuit.py` | `Pure Pursuit` 控制器实现与独立运行入口。 |
-| `PID.py` | 纯 PID 基线控制器实现与独立运行入口。 |
-| `LQR.py` | LQR 路径跟踪控制器实现与独立运行入口。 |
-| `MPC.py` | MPC-style 控制器实现与独立运行入口。 |
-| `common.py` | 公共数据结构、车辆模型、PID 工具、仿真配置定义。 |
-| `cubic_spline.py` | 样条路径生成模块，用于构造参考轨迹。 |
-| `draw.py` | 小车可视化绘制工具，用于静态图和动画展示。 |
-| `requirements.txt` | 项目依赖说明。 |
-| `resume_project_summary.md` | 面向简历投递的项目描述素材。 |
-| `assets/readme/` | README 首页展示图片，适合直接同步到 GitHub。 |
-| `outputs/` | benchmark 运行输出目录，存放表格、分析图和动画。 |
+| `planners/` | 路径规划器实现目录。 |
+| `planners/Dijkstra.py` | Dijkstra 最短路径规划器。 |
+| `planners/Astar.py` | A* 启发式搜索规划器。 |
+| `planners/RRT.py` | RRT 快速探索随机树规划器。 |
+| `planners/RRT_Star.py` | RRT* 渐近最优规划器。 |
+| `planners/PRM.py` | PRM 概率路线图规划器。 |
+| `planners/common.py` | 公共模块：栅格地图、障碍物碰撞检测、场景构造、评测指标。 |
+| `requirements.txt` | 项目依赖（numpy, matplotlib）。 |
+| `assets/readme/` | README 展示图片。 |
+| `outputs_planning/` | benchmark 运行输出：对比图、柱状图、CSV 结果。 |
 
 ## Generated Outputs
 
-综合 benchmark 运行后会生成：
+运行 `python Compare_planner.py` 后自动生成：
 
-- `outputs/benchmark_results.csv`
-- `outputs/benchmark_results.md`
-- `outputs/trajectory_overview.png`
-- `outputs/metric_dashboard.png`
-- `outputs/runs/`
-- `outputs/comparison_effects/snapshots/`
+- `outputs_planning/corridor_comparison.png` — Corridor 场景 5 种规划器对比图
+- `outputs_planning/scattered_comparison.png` — Scattered 场景对比图
+- `outputs_planning/narrow_passage_comparison.png` — Narrow Passage 场景对比图
+- `outputs_planning/summary_path_length_m.png` — 路径长度柱状图
+- `outputs_planning/summary_planning_time_ms.png` — 规划时间柱状图
+- `outputs_planning/summary_explored_nodes.png` — 探索节点数柱状图
+- `outputs_planning/results.csv` — 量化结果 CSV
 
-如果启用 `--animate`，还会生成：
-
-- `outputs/animations/`
-- `outputs/comparison_effects/animations/`
-
-独立脚本运行后会在对应目录下生成结果，例如：
-
-- `outputs/stanley/`
-- `outputs/purepursuit/`
-- `outputs/pid/`
-- `outputs/lqr/`
-- `outputs/mpc/`
+---
 
 ## Resume-oriented Summary
 
-如果你想把这个项目写进简历，可以概括成：
-
-> 搭建了一个自包含的自动驾驶路径规划与轨迹跟踪 benchmark。规划部分统一实现并评测 Dijkstra、A*、RRT、RRT*、PRM 5 类经典规划算法，在走廊、散布障碍物和窄通道场景上对路径长度、规划时间和搜索效率进行量化对比。控制部分统一实现 Stanley、Pure Pursuit、PID、LQR、MPC-style 5 类控制器，在多种轨迹任务上对跟踪精度、完成时间和控制平滑性进行量化对比。
-
-## Notes
-
-- README 中使用的展示图片位于 `assets/readme/`，适合直接同步到 GitHub 首页展示。
-- `outputs/` 是运行产物，每次 benchmark 会自动覆盖旧结果。
-- 如果在 PyCharm 中运行但没有弹出独立窗口，通常是因为开启了 SciView；关闭 `Show plots in tool window` 后再运行即可。
+> 搭建了一个自包含的路径规划算法 benchmark，统一实现并评测 Dijkstra、A*、RRT、RRT*、PRM 5 类经典规划算法，使用统一栅格地图和碰撞检测框架，在走廊、散布障碍物和窄通道 3 个场景上对路径长度、规划时间和搜索效率进行量化对比，并自动生成对比图表和评测报告。
 
 ## License
 
