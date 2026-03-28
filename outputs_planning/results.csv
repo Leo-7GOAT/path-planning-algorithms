@@ -1,16 +1,43 @@
-Scenario,Planner,Success,Path Length (m),Planning Time (ms),Explored Nodes
-Corridor,Dijkstra,Yes,120.71,172.98,2627
-Corridor,A*,Yes,120.71,199.50,1888
-Corridor,RRT,Yes,168.45,187.04,258
-Corridor,RRT*,Yes,115.83,769.66,1469
-Corridor,PRM,Yes,122.01,361.61,602
-Scattered,Dijkstra,Yes,80.08,489.91,3035
-Scattered,A*,Yes,80.08,639.21,840
-Scattered,RRT,Yes,104.00,636.91,91
-Scattered,RRT*,Yes,75.49,1212.19,1409
-Scattered,PRM,Yes,83.66,746.49,602
-Narrow Passage,Dijkstra,Yes,40.00,66.47,1191
-Narrow Passage,A*,Yes,40.00,66.97,40
-Narrow Passage,RRT,Yes,48.05,66.88,33
-Narrow Passage,RRT*,Yes,40.08,564.78,1334
-Narrow Passage,PRM,Yes,42.37,221.54,602
+Scenario,Planner,Success,Path Length (m),Mean Heading Change (rad),Planning Time (ms),Explored Nodes
+Corridor,Dijkstra,Yes,120.71,0.118,172.02,2627
+Corridor,A*,Yes,120.71,0.283,186.36,1888
+Corridor,Hybrid A*,Yes,118.33,0.027,1333.87,32862
+Corridor,RRT,Yes,168.45,0.705,171.79,258
+Corridor,RRT*,Yes,115.83,0.343,718.63,1469
+Corridor,PRM,Yes,122.01,0.316,314.41,602
+Corridor,Bezier,Yes,120.71,0.283,338.53,1888
+Corridor,B-Spline,Yes,120.71,0.283,331.70,1888
+Corridor,Dubins,Yes,120.71,0.283,333.29,1888
+Corridor,Reeds-Shepp,Yes,120.51,0.028,986.80,18495
+Corridor,Frenet,Yes,128.93,0.040,771.88,109
+Corridor,Lattice,Yes,118.93,0.041,1513.92,23394
+Corridor,APF,Yes,120.71,0.283,926.32,5001
+Corridor,DWA,Yes,120.71,0.283,472.15,4200
+Scattered,Dijkstra,Yes,80.08,0.131,422.18,3035
+Scattered,A*,Yes,80.08,0.262,415.22,840
+Scattered,Hybrid A*,Yes,75.64,0.018,470.65,1876
+Scattered,RRT,Yes,104.00,0.653,417.74,91
+Scattered,RRT*,Yes,75.49,0.191,917.93,1409
+Scattered,PRM,Yes,83.66,0.401,571.72,602
+Scattered,Bezier,Yes,80.08,0.262,828.67,840
+Scattered,B-Spline,Yes,80.08,0.262,829.73,840
+Scattered,Dubins,Yes,80.08,0.262,827.56,840
+Scattered,Reeds-Shepp,Yes,76.62,0.024,529.49,1998
+Scattered,Frenet,Yes,80.08,0.262,1436.77,840
+Scattered,Lattice,Yes,76.57,0.028,564.88,2816
+Scattered,APF,Yes,80.08,0.262,1389.13,5001
+Scattered,DWA,Yes,76.43,0.027,975.25,3640
+Narrow Passage,Dijkstra,Yes,40.00,0.000,75.47,1191
+Narrow Passage,A*,Yes,40.00,0.000,68.37,40
+Narrow Passage,Hybrid A*,Yes,40.00,0.000,70.86,18
+Narrow Passage,RRT,Yes,48.05,0.631,72.45,33
+Narrow Passage,RRT*,Yes,40.08,0.091,565.36,1334
+Narrow Passage,PRM,Yes,42.37,0.271,209.43,602
+Narrow Passage,Bezier,Yes,40.00,0.000,137.70,40
+Narrow Passage,B-Spline,Yes,40.00,0.000,135.02,40
+Narrow Passage,Dubins,Yes,40.00,0.000,134.42,40
+Narrow Passage,Reeds-Shepp,Yes,40.00,0.000,74.47,20
+Narrow Passage,Frenet,Yes,40.00,0.000,395.03,109
+Narrow Passage,Lattice,Yes,40.00,0.000,68.00,14
+Narrow Passage,APF,Yes,40.00,0.000,388.18,5001
+Narrow Passage,DWA,Yes,40.00,0.000,199.40,1876

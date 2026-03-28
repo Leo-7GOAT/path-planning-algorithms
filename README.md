@@ -1,34 +1,82 @@
 # Path Planning Algorithms Benchmark
 
-Comparative benchmark and visualization for classical path-planning algorithms in Python.
+Comparative benchmark and visualization project for representative path-planning methods in Python.
 
-这是一个面向自动驾驶规划算法岗位展示的路径规划 benchmark 项目。项目统一实现并对比多种经典规划方法，在不同障碍物场景上进行量化评测，并支持多算法同图展示、场景 GIF 动画和结果图表自动导出。
+这是一个面向自动驾驶规划岗位展示的路径规划 benchmark 项目。项目把搜索、采样、曲线、运动学/栅格、势场、局部规划几大类方法统一到同一套二维障碍地图评测框架里，支持：
+
+- 多算法同图静态对比
+- 每个场景的联跑 GIF 动图
+- 统一结果表导出
+- 路径长度、平滑性、规划时间、搜索规模四类指标评测
 
 ## At a Glance
 
-- `5` 个代表性规划器：`Dijkstra / A* / RRT / RRT* / PRM`
+- `14` 个已接入方法，覆盖 `6` 大类规划思路
 - `3` 个典型场景：`Corridor / Scattered / Narrow Passage`
-- 支持统一地图、统一碰撞检测、统一指标统计
-- 支持每个场景多算法同图对比和联跑 GIF
-- 适合作为自动驾驶规划岗位的项目展示与面试讲解材料
+- 所有算法在同一张图中使用不同颜色叠加展示
+- 每个场景均提供 GIF 动画，适合 GitHub 展示和面试讲解
+- 统一输出到 `outputs_planning/`，README 展示素材固定放在 `assets/readme/`
 
 ## Planning Methods Landscape
 
-路径规划方法大致可以分为这几类：
+路径规划方法通常可以分为以下几类：
 
-- `Search-based`：`BFS / Dijkstra / A* / JPS / D* / D* Lite`
-- `Sampling-based`：`PRM / RRT / RRT* / Informed RRT*`
-- `Optimization-based`：`CHOMP / STOMP / TrajOpt / MPC-based planning`
-- `Kinematic / lattice-based`：`Hybrid A* / State Lattice / Frenet`
-- `Reactive / local methods`：`APF / DWA / TEB`
+- `Search-based`
+  - `Dijkstra`
+  - `A*`
+  - `Hybrid A*`
+- `Sampling-based`
+  - `RRT`
+  - `RRT*`
+  - `PRM`
+- `Curve-based`
+  - `Bezier`
+  - `B-Spline`
+  - `Dubins`
+  - `Reeds-Shepp`
+- `Optimization / trajectory generation`
+  - `Frenet Optimal Trajectory`
+  - `Lattice Planner`
+- `Potential Field`
+  - `APF`
+- `Local Planning`
+  - `DWA`
 
-这版 benchmark 重点实现了 5 个最适合做统一对比、又最有代表性的经典全局规划器：
+## Implemented in This Repo
 
-- `Dijkstra`
-- `A*`
-- `RRT`
-- `RRT*`
-- `PRM`
+| Category | Method | Role in This Benchmark |
+| --- | --- | --- |
+| Search-based | `Dijkstra` | 经典最短路径 baseline，保证图搜索最优解 |
+| Search-based | `A*` | 启发式图搜索，兼顾最优性与效率 |
+| Search-based | `Hybrid A*` | 带朝向约束的连续状态搜索 |
+| Sampling-based | `RRT` | 快速求可行解 |
+| Sampling-based | `RRT*` | 渐近最优采样规划 |
+| Sampling-based | `PRM` | 路网式多查询采样规划 |
+| Curve-based | `Bezier` | 基于导引路径的分段 Bezier 平滑 |
+| Curve-based | `B-Spline` | 基于导引路径的 B-Spline 平滑 |
+| Curve-based | `Dubins` | 最小转弯半径约束下的圆弧平滑 |
+| Curve-based | `Reeds-Shepp` | 支持前进/倒车的曲率约束路径 |
+| Trajectory generation | `Frenet` | Frenet 坐标系下的轨迹生成 |
+| Kinematic / lattice-based | `Lattice` | 基于固定运动原语的状态栅格规划 |
+| Potential Field | `APF` | 人工势场法 |
+| Local Planning | `DWA` | 动态窗口局部规划 |
+
+## Benchmark Fairness Note
+
+这个项目里不同类别的方法承担的角色不完全相同，所以 README 里把评测设定说明清楚很重要：
+
+- `Dijkstra / A* / Hybrid A* / RRT / RRT* / PRM / Lattice / Reeds-Shepp` 主要作为全局或运动学约束规划器直接在障碍地图上搜索。
+- `Bezier / B-Spline / Dubins / Frenet / APF / DWA` 这类方法在二维占据栅格 benchmark 里更适合作为“导引路径平滑 / 轨迹生成 / 局部规划”代表，因此在需要参考路径时会使用 `A*` 生成 guide path，再做曲线生成或局部优化。
+
+这样做的目的是把不同家族的方法放进统一框架里展示“路径质量、平滑性、可行性和计算代价”的 trade-off，而不是假装它们在工程职责上完全等价。
+
+## Scenarios
+
+| Scenario | Description |
+| --- | --- |
+| `Corridor` | 长走廊 + 障碍封堵，考察绕行能力和长路径搜索质量 |
+| `Scattered` | 随机散布障碍物，考察复杂环境中的路径质量与鲁棒性 |
+| `Narrow Passage` | 中间仅有窄通道，考察狭窄可通行区域发现能力 |
 
 ## Visualization
 
@@ -50,11 +98,15 @@ Comparative benchmark and visualization for classical path-planning algorithms i
 
 ![Narrow Passage comparison](assets/readme/narrow_passage_all_planners.png)
 
-### Metric Dashboard
+## Metric Dashboard
 
 **Path Length**
 
 ![Path length comparison](assets/readme/summary_path_length_m.png)
+
+**Mean Heading Change**
+
+![Smoothness comparison](assets/readme/summary_mean_heading_change_rad.png)
 
 **Planning Time**
 
@@ -64,78 +116,43 @@ Comparative benchmark and visualization for classical path-planning algorithms i
 
 ![Explored nodes comparison](assets/readme/summary_explored_nodes.png)
 
-## Planners
+## Experiment Highlights
 
-| Planner | Category | Description |
-| --- | --- | --- |
-| **Dijkstra** | Search-based | 经典图搜索算法，均匀扩展搜索，保证最短路径。 |
-| **A\*** | Search-based | 在 Dijkstra 基础上加入启发式函数，引导搜索朝目标推进，通常能显著减少搜索节点数。 |
-| **RRT** | Sampling-based | 快速探索随机树，通过随机采样增量扩展搜索树，优先求可行解。 |
-| **RRT\*** | Sampling-based | RRT 的渐近最优扩展，通过重连机制持续优化路径质量。 |
-| **PRM** | Sampling-based | 概率路线图方法，先采样建图，再进行图搜索查询，适合多次路径查询场景。 |
+### 1. Search / Sampling Baselines
 
-## Scenarios
+- `Dijkstra` 和 `A*` 仍然是最稳定的最短路径 baseline。
+- `A*` 在 `Scattered` 场景只探索了 `840` 个节点，而 `Dijkstra` 为 `3035`，启发式优势比较明显。
+- `RRT` 很快能给出可行路径，但路径通常更长、更锯齿。
+- `RRT*` 在 `Corridor` 和 `Scattered` 场景中都给出了最短或接近最短的路径，符合其渐近最优特性。
 
-| Scenario | Description |
-| --- | --- |
-| **Corridor** | 迷宫式走廊，测试绕行与长路径搜索能力。 |
-| **Scattered** | 随机散布障碍物，测试复杂环境下的避障和路径质量。 |
-| **Narrow Passage** | 中央仅有窄通道，测试规划器发现狭窄可通行区域的能力。 |
+### 2. Kinematic / Smoothness-oriented Methods
+
+- `Hybrid A*` 在 `Corridor` 和 `Scattered` 场景下路径更短，同时平均航向变化显著更低：
+  - `Corridor`: `0.027 rad`
+  - `Scattered`: `0.018 rad`
+- `Reeds-Shepp` 和 `Lattice` 的平滑性也非常好，说明显式运动学原语和带朝向状态搜索对“可驾驶性”很有帮助。
+- `Frenet` 的平滑性较好，但在障碍密集场景里更依赖参考路径质量。
+
+### 3. Curve-based / Local Methods
+
+- `Bezier / B-Spline / Dubins` 在这个 benchmark 里更多体现为路径平滑和曲率约束表达能力。
+- `APF` 和 `DWA` 已经接入统一流程，可以和全局规划器同场景联跑并输出结果图与 GIF。
+- `DWA` 在 `Scattered` 场景下能得到较短且较平滑的路径，但时间代价高于纯图搜索。
 
 ## Benchmark Results
 
-| Scenario | Planner | Path Length (m) | Planning Time (ms) | Explored Nodes |
-| --- | --- | ---: | ---: | ---: |
-| Corridor | Dijkstra | 120.71 | 172.98 | 2627 |
-| Corridor | A* | 120.71 | 199.50 | 1888 |
-| Corridor | RRT | 168.45 | 187.04 | 258 |
-| Corridor | RRT* | 115.83 | 769.66 | 1469 |
-| Corridor | PRM | 122.01 | 361.61 | 602 |
-| Scattered | Dijkstra | 80.08 | 489.91 | 3035 |
-| Scattered | A* | 80.08 | 639.21 | 840 |
-| Scattered | RRT | 104.00 | 636.91 | 91 |
-| Scattered | RRT* | 75.49 | 1212.19 | 1409 |
-| Scattered | PRM | 83.66 | 746.49 | 602 |
-| Narrow Passage | Dijkstra | 40.00 | 66.47 | 1191 |
-| Narrow Passage | A* | 40.00 | 66.97 | 40 |
-| Narrow Passage | RRT | 48.05 | 66.88 | 33 |
-| Narrow Passage | RRT* | 40.08 | 564.78 | 1334 |
-| Narrow Passage | PRM | 42.37 | 221.54 | 602 |
+完整结果见 [outputs_planning/results.csv](outputs_planning/results.csv)。
 
-## Experiment Analysis
+当前版本的一些代表性结果：
 
-### Overall
-
-- 5 种规划器在 3 个场景上都成功找到路径，说明统一 benchmark 框架与碰撞检测逻辑稳定可用。
-- `Search-based` 方法在路径最优性上表现稳定，而 `Sampling-based` 方法在连续空间中更容易产生更短或更灵活的路径。
-- `Narrow Passage` 对启发式和采样能力区分最明显，`Corridor` 与 `Scattered` 更适合观察路径质量和规划时间 trade-off。
-
-### By Planner
-
-- **Dijkstra**：最适合作为最优性 baseline。优点是稳定可靠、一定能找到最短路径；缺点是探索节点多、效率偏低。
-- **A\***：路径质量与 Dijkstra 一致，但通常探索节点更少。当前实现里在 `Narrow Passage` 上只探索 `40` 个节点，对比 Dijkstra 的 `1191`，启发式优势非常明显。
-- **RRT**：很快得到可行解，探索节点极少，但路径通常更长、更锯齿化。
-- **RRT\***：路径质量通常最好或接近最好，但优化代价明显更高，规划时间最长。
-- **PRM**：性能居中，路径质量和规划时间都比较平衡，适合多次 query 的应用设定。
-
-### By Scenario
-
-- **Corridor**：`RRT*` 得到最短路径，说明采样 + 重连在连续空间长走廊中有优势；`RRT` 可行但路径明显更绕。
-- **Scattered**：`RRT*` 仍然最优，`A*` 比 Dijkstra 探索节点显著更少，符合启发式搜索理论。
-- **Narrow Passage**：`A*` 与 Dijkstra 路径同为最优，但搜索效率远高于 Dijkstra；`RRT` 也能快速穿过窄通道，不过路径质量偏差更大。
-
-### Theory vs Practice
-
-- 结果整体符合经典理论预期：
-- `Dijkstra / A*` 在栅格地图上给出最优路径；
-- `RRT` 更擅长快速找到可行解，而不是最好解；
-- `RRT*` 通过 rewiring 提升路径质量，但时间代价更高；
-- `PRM` 作为 roadmap 方法，表现通常处于中间位置。
-
-需要注意的是：
-
-- 这里的 wall-clock 时间是 Python 实现下的工程结果，不完全等于算法理论复杂度排名。
-- `A*` 虽然通常会减少探索节点，但在 Python 层面的数据结构和障碍布局差异下，时间优势不一定在每个场景都绝对成立。
+- `Corridor`
+  - Best path length: `RRT* = 115.83 m`
+  - Best smoothness: `Hybrid A* = 0.027 rad`
+- `Scattered`
+  - Best path length: `RRT* = 75.49 m`
+  - Best smoothness: `Hybrid A* = 0.018 rad`
+- `Narrow Passage`
+  - 多种方法都能找到近似最优通道解，`A* / Hybrid A* / Lattice / Reeds-Shepp / DWA` 都稳定通过
 
 ## Quick Start
 
@@ -151,23 +168,28 @@ pip install -r requirements.txt
 python Compare_planner.py
 ```
 
-静默运行并输出结果到 `outputs_planning/`。
+默认会重新生成：
 
-如果你想弹出静态图：
+- 场景对比图
+- 结果表 `outputs_planning/results.csv`
+- 指标汇总柱状图
 
-```bash
-python Compare_planner.py --show
-```
-
-如果你想导出每个场景的多算法同图 GIF：
+### 3. Export GIFs
 
 ```bash
 python Compare_planner.py --animate
 ```
 
-如果你想弹出动画窗口：
+会额外生成：
+
+- `outputs_planning/animations/corridor_all_planners.gif`
+- `outputs_planning/animations/scattered_all_planners.gif`
+- `outputs_planning/animations/narrow_passage_all_planners.gif`
+
+### 4. Interactive display
 
 ```bash
+python Compare_planner.py --show
 python Compare_planner.py --show-animation
 ```
 
@@ -175,40 +197,29 @@ python Compare_planner.py --show-animation
 
 | File | Purpose |
 | --- | --- |
-| `Compare_planner.py` | 规划 benchmark 总入口，负责调度算法、输出结果、生成静态图和 GIF。 |
-| `planners/` | 规划器实现目录。 |
-| `planners/Dijkstra.py` | Dijkstra 最短路径规划器。 |
-| `planners/Astar.py` | A* 启发式搜索规划器。 |
-| `planners/RRT.py` | RRT 快速探索随机树规划器。 |
-| `planners/RRT_Star.py` | RRT* 渐近最优规划器。 |
-| `planners/PRM.py` | PRM 概率路线图规划器。 |
-| `planners/common.py` | 公共模块：栅格地图、障碍物碰撞检测、场景构造、结果格式。 |
-| `requirements.txt` | 项目依赖（numpy, matplotlib）。 |
-| `assets/readme/` | README 展示图片和 GIF。 |
-| `outputs_planning/` | benchmark 运行输出目录。 |
-
-## Generated Outputs
-
-运行 `python Compare_planner.py` 后自动生成：
-
-- `outputs_planning/corridor_comparison.png`
-- `outputs_planning/scattered_comparison.png`
-- `outputs_planning/narrow_passage_comparison.png`
-- `outputs_planning/overlays/`
-- `outputs_planning/results.csv`
-- `outputs_planning/summary_path_length_m.png`
-- `outputs_planning/summary_planning_time_ms.png`
-- `outputs_planning/summary_explored_nodes.png`
-
-如果启用 `--animate`，还会生成：
-
-- `outputs_planning/animations/corridor_all_planners.gif`
-- `outputs_planning/animations/scattered_all_planners.gif`
-- `outputs_planning/animations/narrow_passage_all_planners.gif`
+| `Compare_planner.py` | 规划 benchmark 总入口，统一调度所有算法、导出图表和 GIF |
+| `planners/common.py` | 公共地图、碰撞检测、路径指标和场景构造 |
+| `planners/guided_utils.py` | A* 导引路径构造与曲线/局部规划公共收尾逻辑 |
+| `planners/Dijkstra.py` | Dijkstra 全局搜索 |
+| `planners/Astar.py` | A* 全局搜索 |
+| `planners/HybridAstar.py` | 带朝向约束的 Hybrid A* |
+| `planners/RRT.py` | RRT 采样规划 |
+| `planners/RRT_Star.py` | RRT* 采样规划 |
+| `planners/PRM.py` | PRM 路网规划 |
+| `planners/Bezier.py` | Bezier 曲线平滑 |
+| `planners/BSpline.py` | B-Spline 曲线平滑 |
+| `planners/Dubins.py` | Dubins 风格曲率约束平滑 |
+| `planners/ReedsShepp.py` | 支持倒车的曲率约束规划 |
+| `planners/Frenet.py` | Frenet 轨迹生成 |
+| `planners/Lattice.py` | 状态栅格 / motion primitive 规划 |
+| `planners/APF.py` | 人工势场法 |
+| `planners/DWA.py` | 动态窗口局部规划 |
+| `assets/readme/` | README 展示图片与 GIF |
+| `outputs_planning/` | benchmark 运行输出目录 |
 
 ## Resume-oriented Summary
 
-> 搭建了一个自包含的路径规划算法 benchmark，统一实现并评测 Dijkstra、A*、RRT、RRT*、PRM 5 类经典规划算法，基于统一地图与碰撞检测框架，在走廊、散布障碍物和窄通道 3 个场景上对路径长度、规划时间和搜索效率进行量化对比，并支持多算法同图可视化与 GIF 动态展示。
+> 搭建了一个覆盖搜索、采样、曲线、运动学/栅格、势场和局部规划六大类方法的路径规划 benchmark 项目，统一实现并评测 Dijkstra、A*、Hybrid A*、RRT、RRT*、PRM、Bezier、B-Spline、Dubins、Reeds-Shepp、Frenet、Lattice、APF、DWA 共 14 种方法，在走廊、散布障碍物和窄通道 3 个场景中对路径长度、平滑性、规划时间和搜索规模进行量化对比，并支持多算法同图可视化与 GIF 动态展示。
 
 ## License
 

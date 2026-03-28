@@ -14,6 +14,7 @@ Usage:
 
 import argparse
 import csv
+import inspect
 import os
 import shutil
 from contextlib import contextmanager, nullcontext
@@ -24,27 +25,54 @@ import numpy as np
 
 from planners import (
     AStarPlanner,
+    APFPlanner,
+    BSplinePlanner,
+    BezierPlanner,
+    DWAPlanner,
     DijkstraPlanner,
+    DubinsPlanner,
+    FrenetPlanner,
+    HybridAStarPlanner,
+    LatticePlanner,
     PRMPlanner,
+    ReedsSheppPlanner,
     RRTPlanner,
     RRTStarPlanner,
 )
-from planners.common import PlannerConfig, build_scenario_obstacles, format_table
+from planners.common import PlannerConfig, build_scenario_obstacles, calc_mean_heading_change, calc_path_length, format_table
 
 COLORS = {
     "Dijkstra": "tab:red",
     "A*": "tab:blue",
+    "Hybrid A*": "tab:orange",
     "RRT": "tab:green",
     "RRT*": "tab:purple",
     "PRM": "tab:brown",
+    "Bezier": "tab:pink",
+    "B-Spline": "tab:gray",
+    "Dubins": "goldenrod",
+    "Reeds-Shepp": "olive",
+    "Frenet": "teal",
+    "Lattice": "darkcyan",
+    "APF": "crimson",
+    "DWA": "navy",
 }
 
 PLANNERS = [
     ("Dijkstra", DijkstraPlanner),
     ("A*", AStarPlanner),
+    ("Hybrid A*", HybridAStarPlanner),
     ("RRT", RRTPlanner),
     ("RRT*", RRTStarPlanner),
     ("PRM", PRMPlanner),
+    ("Bezier", BezierPlanner),
+    ("B-Spline", BSplinePlanner),
+    ("Dubins", DubinsPlanner),
+    ("Reeds-Shepp", ReedsSheppPlanner),
+    ("Frenet", FrenetPlanner),
+    ("Lattice", LatticePlanner),
+    ("APF", APFPlanner),
+    ("DWA", DWAPlanner),
 ]
 
 
@@ -93,6 +121,14 @@ def _draw_scene(axis, scenario_data):
     axis.grid(True, alpha=0.3)
 
 
+def _run_planner(planner, sx, sy, gx, gy, ox, oy, scenario_data):
+    signature = inspect.signature(planner.plan)
+    kwargs = {}
+    if "scenario" in signature.parameters:
+        kwargs["scenario"] = scenario_data
+    return planner.plan(sx, sy, gx, gy, ox, oy, **kwargs)
+
+
 def plot_overlay_comparison(scenario_name, scenario_data, scenario_results, output_path, show=False):
     context = nullcontext() if show else _suppress_interactive_windows()
     with context:
@@ -107,7 +143,7 @@ def plot_overlay_comparison(scenario_name, scenario_data, scenario_results, outp
                 axis.plot([], [], color=color, linewidth=2.2, label=f"{planner_name} (fail)")
 
         axis.set_title(f"{_scenario_label(scenario_name)} - All Planners")
-        axis.legend(frameon=False, ncol=3, loc="best")
+        axis.legend(frameon=False, ncol=4, loc="best", fontsize=8)
         figure.tight_layout()
         figure.savefig(output_path, dpi=180, bbox_inches="tight")
 
@@ -163,7 +199,7 @@ def animate_overlay_comparison(
             axis.set_title(
                 f"{_scenario_label(scenario_name)} - All Planners Live ({int(frac * 100):d}%)"
             )
-            axis.legend(frameon=False, ncol=3, loc="best")
+            axis.legend(frameon=False, ncol=4, loc="best", fontsize=8)
 
         animation = FuncAnimation(
             figure,
@@ -214,7 +250,10 @@ def run_benchmark(output_dir="outputs_planning", show=False, make_animation=Fals
         for planner_name, planner_cls in PLANNERS:
             print(f"  Running {planner_name}...", end=" ", flush=True)
             planner = planner_cls(config=config)
-            result = planner.plan(sx, sy, gx, gy, ox, oy)
+            result = _run_planner(planner, sx, sy, gx, gy, ox, oy, scenario_data)
+            if result.success and result.path_x:
+                result.path_length = calc_path_length(result.path_x, result.path_y)
+                result.smoothness = calc_mean_heading_change(result.path_x, result.path_y)
             all_results.append((scenario_name, result))
             scenario_results.append((planner_name, result))
 
@@ -291,6 +330,7 @@ def _plot_summary(all_results, scenarios, output_dir, show):
     planner_names = [name for name, _ in PLANNERS]
     metrics = {
         "Path Length (m)": lambda result: result.path_length if result.success else 0.0,
+        "Mean Heading Change (rad)": lambda result: result.smoothness if result.success else 0.0,
         "Planning Time (ms)": lambda result: result.planning_time * 1000.0,
         "Explored Nodes": lambda result: result.explored_nodes,
     }
@@ -300,7 +340,7 @@ def _plot_summary(all_results, scenarios, output_dir, show):
         with context:
             figure, axis = plt.subplots(figsize=(10, 6))
             x_axis = np.arange(len(scenario_names))
-            width = 0.15
+            width = max(0.05, 0.84 / max(len(planner_names), 1))
             offsets = np.linspace(
                 -width * (len(planner_names) - 1) / 2.0,
                 width * (len(planner_names) - 1) / 2.0,
@@ -327,7 +367,7 @@ def _plot_summary(all_results, scenarios, output_dir, show):
             axis.set_title(f"Planner Comparison - {metric_name}")
             axis.set_xticks(x_axis)
             axis.set_xticklabels([_scenario_label(name) for name in scenario_names])
-            axis.legend(frameon=False)
+            axis.legend(frameon=False, ncol=4, fontsize=8)
             axis.grid(True, axis="y", alpha=0.3)
             figure.tight_layout()
 
@@ -345,6 +385,7 @@ def _save_csv(all_results, output_dir):
         "Planner",
         "Success",
         "Path Length (m)",
+        "Mean Heading Change (rad)",
         "Planning Time (ms)",
         "Explored Nodes",
     ]

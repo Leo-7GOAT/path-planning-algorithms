@@ -17,5 +17,3 @@ resume_project_summary.md
 .claude/
 
 # Local experiments not included in the public benchmark
-planners/APF.py
-planners/Frenet.py
