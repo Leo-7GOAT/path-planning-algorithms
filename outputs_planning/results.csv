@@ -1,0 +1,16 @@
+Scenario,Planner,Success,Path Length (m),Planning Time (ms),Explored Nodes
+corridor,Dijkstra,Yes,120.71,159.99,2627
+corridor,A*,Yes,120.71,163.72,3050
+corridor,RRT,Yes,168.45,156.82,258
+corridor,RRT*,Yes,115.83,712.87,1469
+corridor,PRM,Yes,122.01,299.75,602
+scattered,Dijkstra,Yes,80.08,396.69,3035
+scattered,A*,Yes,80.08,385.52,1309
+scattered,RRT,Yes,104.00,385.60,91
+scattered,RRT*,Yes,75.49,858.47,1409
+scattered,PRM,Yes,83.66,519.26,602
+narrow_passage,Dijkstra,Yes,40.00,66.79,1191
+narrow_passage,A*,Yes,40.00,61.97,40
+narrow_passage,RRT,Yes,48.05,60.88,33
+narrow_passage,RRT*,Yes,40.08,507.21,1334
+narrow_passage,PRM,Yes,42.37,196.92,602
