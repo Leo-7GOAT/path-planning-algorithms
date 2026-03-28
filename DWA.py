@@ -11,8 +11,8 @@ import time
 
 import numpy as np
 
-from .common import PlannerConfig, PlanningResult, calc_path_length, nearest_path_index, resample_path
-from .guided_utils import build_astar_reference, finalize_path_result
+from common import PlannerConfig, PlanningResult, calc_path_length, nearest_path_index, resample_path
+from guided_utils import build_astar_reference, finalize_path_result
 
 
 class DWAPlanner:

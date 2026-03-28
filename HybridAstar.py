@@ -9,7 +9,7 @@ import heapq
 import math
 import time
 
-from .common import PlannerConfig, PlanningResult, ObstacleMap, calc_path_length, resample_path
+from common import PlannerConfig, PlanningResult, ObstacleMap, calc_path_length, resample_path
 
 
 class _PoseNode:

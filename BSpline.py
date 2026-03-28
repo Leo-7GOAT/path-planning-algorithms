@@ -6,8 +6,8 @@ Generates a smooth cubic B-spline path from sparse A* guide points.
 
 import time
 
-from .common import PlannerConfig, resample_path, uniform_bspline_path
-from .guided_utils import build_astar_reference, finalize_path_result
+from common import PlannerConfig, resample_path, uniform_bspline_path
+from guided_utils import build_astar_reference, finalize_path_result
 
 
 class BSplinePlanner:

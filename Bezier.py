@@ -9,8 +9,8 @@ import time
 
 import numpy as np
 
-from .common import PlannerConfig, resample_path
-from .guided_utils import build_astar_reference, finalize_path_result
+from common import PlannerConfig, resample_path
+from guided_utils import build_astar_reference, finalize_path_result
 
 
 def _piecewise_bezier(points, samples_per_seg=20):

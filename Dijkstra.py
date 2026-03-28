@@ -12,7 +12,7 @@ import heapq
 import math
 import time
 
-from .common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length
+from common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length
 
 # 8-connected grid motions: [dx, dy, cost]
 MOTIONS = [

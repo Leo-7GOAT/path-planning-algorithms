@@ -16,6 +16,7 @@ Comparative benchmark and visualization project for representative path-planning
 - 所有算法在同一张图中使用不同颜色叠加展示
 - 每个场景均提供 GIF 动画，适合 GitHub 展示和面试讲解
 - 统一输出到 `outputs_planning/`，README 展示素材固定放在 `assets/readme/`
+- 仓库目录结构与 `path-tracking-controllers` 保持一致，便于成套展示
 
 ## Planning Methods Landscape
 
@@ -141,7 +142,7 @@ Comparative benchmark and visualization project for representative path-planning
 
 ## Benchmark Results
 
-完整结果见 [outputs_planning/results.csv](outputs_planning/results.csv)。
+完整结果会在本地运行后输出到 `outputs_planning/results.csv`。
 
 当前版本的一些代表性结果：
 
@@ -197,22 +198,31 @@ python Compare_planner.py --show-animation
 
 | File | Purpose |
 | --- | --- |
-| `Compare_planner.py` | 规划 benchmark 总入口，统一调度所有算法、导出图表和 GIF |
-| `planners/common.py` | 公共地图、碰撞检测、路径指标和场景构造 |
-| `planners/guided_utils.py` | A* 导引路径构造与曲线/局部规划公共收尾逻辑 |
-| `planners/Dijkstra.py` | Dijkstra 全局搜索 |
-| `planners/Astar.py` | A* 全局搜索 |
-| `planners/HybridAstar.py` | 带朝向约束的 Hybrid A* |
-| `planners/RRT.py` | RRT 采样规划 |
-| `planners/RRT_Star.py` | RRT* 采样规划 |
-| `planners/PRM.py` | PRM 路网规划 |
-| `planners/Bezier.py` | Bezier 曲线平滑 |
-| `planners/BSpline.py` | B-Spline 曲线平滑 |
-| `planners/Dubins.py` | Dubins 风格曲率约束平滑 |
-| `planners/ReedsShepp.py` | 支持倒车的曲率约束规划 |
-| `planners/Frenet.py` | Frenet 轨迹生成 |
-| `planners/Lattice.py` | 状态栅格 / motion primitive 规划 |
-| `planners/APF.py` | 人工势场法 |
-| `planners/DWA.py` | 动态窗口局部规划 |
+| `Compare_planner.py` | 规划 benchmark 薄入口，和控制器仓库的入口形式保持一致 |
+| `benchmark_runner.py` | 统一调度算法、导出图表与 GIF 的核心运行器 |
+| `common.py` | 公共地图、碰撞检测、路径指标和场景构造 |
+| `guided_utils.py` | A* 导引路径构造与曲线/局部规划公共收尾逻辑 |
+| `Dijkstra.py` | Dijkstra 全局搜索 |
+| `Astar.py` | A* 全局搜索 |
+| `HybridAstar.py` | 带朝向约束的 Hybrid A* |
+| `RRT.py` | RRT 采样规划 |
+| `RRT_Star.py` | RRT* 采样规划 |
+| `PRM.py` | PRM 路网规划 |
+| `Bezier.py` | Bezier 曲线平滑 |
+| `BSpline.py` | B-Spline 曲线平滑 |
+| `Dubins.py` | Dubins 风格曲率约束平滑 |
+| `ReedsShepp.py` | 支持倒车的曲率约束规划 |
+| `Frenet.py` | Frenet 轨迹生成 |
+| `Lattice.py` | 状态栅格 / motion primitive 规划 |
+| `APF.py` | 人工势场法 |
+| `DWA.py` | 动态窗口局部规划 |
 | `assets/readme/` | README 展示图片与 GIF |
-| `outputs_planning/` | benchmark 运行输出目录 |
+| `outputs_planning/` | benchmark 本地运行输出目录，默认不纳入 GitHub 展示结构 |
+
+## Resume-oriented Summary
+
+> 搭建了一个覆盖搜索、采样、曲线、运动学/栅格、势场和局部规划六大类方法的路径规划 benchmark 项目，统一实现并评测 Dijkstra、A*、Hybrid A*、RRT、RRT*、PRM、Bezier、B-Spline、Dubins、Reeds-Shepp、Frenet、Lattice、APF、DWA 共 14 种方法，在走廊、散布障碍物和窄通道 3 个场景中对路径长度、平滑性、规划时间和搜索规模进行量化对比，并支持多算法同图可视化与 GIF 动态展示。
+
+## License
+
+This project is released under the MIT License. See `LICENSE` for details.

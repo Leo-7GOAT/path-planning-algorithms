@@ -17,7 +17,7 @@ import heapq
 import math
 import time
 
-from .common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length
+from common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length
 
 MOTIONS = [
     (1, 0, 1.0),

@@ -8,8 +8,8 @@ in a 2D obstacle-map benchmark.
 
 import time
 
-from .common import PlannerConfig, fillet_path, resample_path
-from .guided_utils import build_astar_reference, finalize_path_result
+from common import PlannerConfig, fillet_path, resample_path
+from guided_utils import build_astar_reference, finalize_path_result
 
 
 class DubinsPlanner:

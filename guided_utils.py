@@ -1,7 +1,7 @@
 import time
 
-from .Astar import AStarPlanner
-from .common import (
+from Astar import AStarPlanner
+from common import (
     ObstacleMap,
     PlannerConfig,
     PlanningResult,

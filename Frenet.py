@@ -24,8 +24,8 @@ import time
 
 import numpy as np
 
-from .common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length, sample_control_points
-from .guided_utils import build_astar_reference
+from common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length, sample_control_points
+from guided_utils import build_astar_reference
 
 
 class _CubicSpline1D:

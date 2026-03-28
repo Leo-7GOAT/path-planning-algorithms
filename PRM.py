@@ -21,7 +21,7 @@ import random
 import time
 from collections import defaultdict
 
-from .common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length
+from common import ObstacleMap, PlannerConfig, PlanningResult, calc_path_length
 
 
 class PRMPlanner:

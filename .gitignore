@@ -8,12 +8,12 @@ venv/
 env/
 
 outputs/
-outputs_planning/animations/
-outputs_planning/overlays/
+outputs_planning/
 
 .idea/
 .vscode/
 resume_project_summary.md
 .claude/
 
-# Local experiments not included in the public benchmark
+# Legacy package layout kept only during refactor
+planners/
