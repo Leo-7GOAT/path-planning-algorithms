@@ -68,8 +68,17 @@ Comparative benchmark and visualization project for representative path-planning
 
 - `Dijkstra / A* / Hybrid A* / RRT / RRT* / PRM / Lattice / Reeds-Shepp` 主要作为全局或运动学约束规划器直接在障碍地图上搜索。
 - `Bezier / B-Spline / Dubins / Frenet / APF / DWA` 这类方法在二维占据栅格 benchmark 里更适合作为“导引路径平滑 / 轨迹生成 / 局部规划”代表，因此在需要参考路径时会使用 `A*` 生成 guide path，再做曲线生成或局部优化。
+- 所有方法共享同一套二维占据地图、同一碰撞检测器、同一路径重采样规则和同一指标提取流程，避免因为后处理差异把算法本体差异掩盖掉。
 
 这样做的目的是把不同家族的方法放进统一框架里展示“路径质量、平滑性、可行性和计算代价”的 trade-off，而不是假装它们在工程职责上完全等价。
+
+## Design Choices / Engineering Notes
+
+- `统一地图与碰撞模型`：所有算法都运行在同一批二维占据栅格场景上，并共享同一碰撞检测与越界判定逻辑。这样做可以把差异更多地归因到规划策略，而不是地图解析或碰撞模型口径不同。
+- `场景选择`：`Corridor` 主要看绕行质量和长路径搜索能力，`Scattered` 主要看复杂障碍环境下的鲁棒性，`Narrow Passage` 主要看狭窄可行通道的发现能力。这三个场景组合起来，刚好能把搜索、采样、平滑和局部规划的典型短板拉出来。
+- `指标选择`：`Path Length` 反映全局效率，`Mean Heading Change` 近似反映平滑性与可驾驶性，`Planning Time` 反映实时性成本，`Explored Nodes` 反映搜索规模与算法开销。这组指标的设计重点不是只看“有没有路”，而是看“路的质量值不值得工程落地”。
+- `公平性处理`：不同规划家族在工程里扮演的职责并不完全等价，所以这里不强行把所有方法解释成同一层级的全局规划器。对于更适合作为平滑器、轨迹生成器或局部规划器的方法，README 会明确说明其 guide path 依赖，并在统一后处理下做横向比较。
+- `可视化策略`：每个场景都用“所有算法同图、不同颜色”的方式展示，目的是让失败模式、拓扑差异和路径风格差异在 GitHub 首页上就能被直接看见，而不是只能藏在表格里。
 
 ## Scenarios
 
@@ -143,6 +152,18 @@ Comparative benchmark and visualization project for representative path-planning
 - `Bezier / B-Spline / Dubins` 在这个 benchmark 里更多体现为路径平滑和曲率约束表达能力。
 - `APF` 和 `DWA` 已经接入统一流程，可以和全局规划器同场景联跑并输出结果图与 GIF。
 - `DWA` 在 `Scattered` 场景下能得到较短且较平滑的路径，但时间代价高于纯图搜索。
+
+## Failure Cases / Limitations
+
+- `Dijkstra` 最稳，但在大地图或更高分辨率下探索量会迅速膨胀，不适合把实时性作为核心目标的场景。
+- `A*` 的效率明显依赖启发式质量与栅格分辨率；在窄通道和密集障碍下，节点扩展量仍然可能显著上升。
+- `Hybrid A*` 对步长、朝向离散粒度和运动原语设计敏感；离散过粗会丢可行解，过细又会带来明显的计算开销。
+- `RRT / RRT*` 对随机种子、采样预算和扩展半径较敏感；`RRT` 更快但路径粗糙，`RRT*` 更优但通常需要更多时间才能体现优势。
+- `PRM` 对 roadmap 密度和连接半径敏感，更适合多查询问题；在单次查询 benchmark 里不一定天然占优。
+- `Bezier / B-Spline / Dubins / Reeds-Shepp / Frenet` 这类方法对 guide path 或参考轨迹质量比较依赖；当导引路径离障碍太近时，平滑结果可能牺牲安全裕度甚至可行性。
+- `APF` 容易陷入局部极小值，`Narrow Passage` 这类场景天然对它不友好。
+- `DWA` 作为局部规划器容易短视，没有强全局引导时可能在复杂拓扑里做出局部最优决策；障碍密集时计算量也会明显上升。
+- `整体局限`：当前 benchmark 基于静态二维占据地图，没有动态障碍、不确定性传播、速度剖面优化和完整车辆动力学，因此更适合作为“规划家族对比项目”，而不是完整自动驾驶规划栈评测。
 
 ## Benchmark Results
 
