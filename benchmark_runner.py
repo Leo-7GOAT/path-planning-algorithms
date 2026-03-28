@@ -296,6 +296,7 @@ def run_benchmark(output_dir="outputs_planning", show=False, make_animation=Fals
             if animation_figure is not None:
                 animation_figures.append(animation_figure)
 
+    _plot_trajectory_overview(scenarios, scenario_result_map, output_dir, show)
     _plot_summary(all_results, scenarios, output_dir, show)
 
     print(f"\n{'=' * 60}")
@@ -321,6 +322,30 @@ def run_benchmark(output_dir="outputs_planning", show=False, make_animation=Fals
     print(f"  - Overlay snapshots: {overlay_dir}")
     if make_animation:
         print(f"  - Scenario GIFs: {animation_dir}")
+
+
+def _plot_trajectory_overview(scenarios, scenario_result_map, output_dir, show):
+    context = nullcontext() if show else _suppress_interactive_windows()
+    with context:
+        figure, axes = plt.subplots(1, len(scenarios), figsize=(18, 5.6))
+        if len(scenarios) == 1:
+            axes = [axes]
+
+        for axis, (scenario_name, scenario_data) in zip(axes, scenarios.items()):
+            _draw_scene(axis, scenario_data)
+            for planner_name, result in scenario_result_map[scenario_name]:
+                color = COLORS.get(planner_name, "tab:gray")
+                if result.success:
+                    axis.plot(result.path_x, result.path_y, color=color, linewidth=1.8, label=planner_name)
+            axis.set_title(_scenario_label(scenario_name))
+            axis.legend(frameon=False, ncol=2, fontsize=7, loc="best")
+
+        figure.suptitle("Trajectory Overview Across Scenarios", fontsize=15, y=1.02)
+        figure.tight_layout()
+        figure.savefig(os.path.join(output_dir, "trajectory_overview.png"), dpi=160, bbox_inches="tight")
+        if show:
+            plt.show()
+        plt.close(figure)
 
 
 def _plot_summary(all_results, scenarios, output_dir, show):

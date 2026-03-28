@@ -99,6 +99,10 @@ Comparative benchmark and visualization project for representative path-planning
 
 ![Narrow Passage comparison](assets/readme/narrow_passage_all_planners.png)
 
+### Trajectory Overview
+
+![Trajectory overview](assets/readme/trajectory_overview.png)
+
 ## Metric Dashboard
 
 **Path Length**
